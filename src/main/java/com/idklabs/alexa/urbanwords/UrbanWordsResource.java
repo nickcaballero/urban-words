@@ -1,5 +1,7 @@
 package com.idklabs.alexa.urbanwords;
 
+import com.amazon.speech.Sdk;
+import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.json.SpeechletResponseEnvelope;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
@@ -24,7 +26,7 @@ public class UrbanWordsResource {
     private UrbanWordsService service;
 
     @PostMapping("/day")
-    public SpeechletResponseEnvelope getWordOfTheDay(@RequestBody SpeechletResponseEnvelope request)
+    public SpeechletResponseEnvelope getWordOfTheDay(@RequestBody SpeechletRequestEnvelope request)
                     throws IOException {
 
         // Get word of the day and define it
@@ -45,6 +47,9 @@ public class UrbanWordsResource {
 
         // Output the envelope
         SpeechletResponseEnvelope envelope = new SpeechletResponseEnvelope();
+        envelope.setVersion(Sdk.VERSION);
+        envelope.setSessionAttributes(request.getSession()
+                                             .getAttributes());
         envelope.setResponse(response);
         return envelope;
     }

@@ -1,6 +1,8 @@
 package com.idklabs.alexa.urbanwords;
 
-import com.idklabs.alexa.amzn.AlexaRequest;
+import com.amazon.speech.json.SpeechletResponseEnvelope;
+import com.amazon.speech.speechlet.SpeechletResponse;
+import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.idklabs.alexa.urbanwords.api.Definition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,17 +24,28 @@ public class UrbanWordsResource {
     private UrbanWordsService service;
 
     @PostMapping("/day")
-    public WordDefinition getWordOfTheDay(@RequestBody AlexaRequest request) throws IOException {
+    public SpeechletResponseEnvelope getWordOfTheDay(@RequestBody SpeechletResponseEnvelope request)
+                    throws IOException {
+
+        // Get word of the day and define it
         String wordOfTheDay = service.getWordOfTheDay();
         Optional<Definition> definition = service.getDefinition(wordOfTheDay)
                                                  .getDefinitions()
                                                  .stream()
                                                  .findFirst();
+
+        // Build output speech if nay
+        SpeechletResponse response = new SpeechletResponse();
         if (definition.isPresent()) {
-            return new WordDefinition(wordOfTheDay, definition.get()
-                                                              .getDefinition());
-        } else {
-            return null;
+            PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+            outputSpeech.setText(definition.get()
+                                           .getDefinition());
+            response.setOutputSpeech(outputSpeech);
         }
+
+        // Output the envelope
+        SpeechletResponseEnvelope envelope = new SpeechletResponseEnvelope();
+        envelope.setResponse(response);
+        return envelope;
     }
 }

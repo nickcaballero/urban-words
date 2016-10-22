@@ -3,8 +3,12 @@ package com.idklabs.alexa.amzn;
 import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.json.SpeechletResponseEnvelope;
 import com.amazon.speech.speechlet.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,6 +26,10 @@ public class AbstractSpeechlet implements Speechlet {
 
     private final Map<String, Method> intents = Maps.newHashMap();
     private final SpeechletRequestDispatcher dispatcher = new SpeechletRequestDispatcher(this);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ObjectMapper mapper;
 
     public AbstractSpeechlet() {
         Method[] declaredMethods = getClass().getDeclaredMethods();
@@ -67,7 +75,7 @@ public class AbstractSpeechlet implements Speechlet {
                     parameters.add(session);
                 }
             }
-
+            logger.info("Dispatching request: {}", mapper.writeValueAsString(request));
             return (SpeechletResponse) method.invoke(this, parameters.toArray());
         } catch (Exception e) {
             throw new SpeechletException(e);

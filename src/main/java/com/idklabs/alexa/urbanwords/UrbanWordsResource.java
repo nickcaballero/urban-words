@@ -75,6 +75,7 @@ public class UrbanWordsResource extends AbstractSpeechlet {
         if (definition != null) {
             String speech = (prefix + definition.getDefinition()).replaceAll(INVALID_CHARS, "");
             if (definitions.size() > definitionIndex + 1) {
+                speech += ". Would you like an alternate definition?";
                 configureReprompt(response);
             } else {
                 response.setShouldEndSession(true);

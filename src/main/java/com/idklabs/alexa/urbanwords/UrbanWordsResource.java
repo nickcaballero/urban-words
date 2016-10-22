@@ -85,6 +85,7 @@ public class UrbanWordsResource extends AbstractSpeechlet {
         speech.setText("Would you like an alternate definition?");
         reprompt.setOutputSpeech(speech);
         response.setReprompt(reprompt);
+        response.setShouldEndSession(false);
     }
 
     private int getDefinitionIndex(Session session, String wordKey) {

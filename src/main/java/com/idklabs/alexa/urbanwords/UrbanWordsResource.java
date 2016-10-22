@@ -4,6 +4,7 @@ import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.Session;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
+import com.amazon.speech.ui.Reprompt;
 import com.idklabs.alexa.amzn.AbstractSpeechlet;
 import com.idklabs.alexa.urbanwords.api.Definition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,8 +67,7 @@ public class UrbanWordsResource extends AbstractSpeechlet {
         if (definition != null) {
             String speech = (prefix + definition.getDefinition()).replaceAll(INVALID_CHARS, "");
             if (definitions.size() > definitionIndex + 1) {
-                speech += ". Would you like an alternate definition?";
-                response.setShouldEndSession(false);
+                configureReprompt(response);
             } else {
                 response.setShouldEndSession(true);
             }
@@ -77,6 +77,15 @@ public class UrbanWordsResource extends AbstractSpeechlet {
         }
 
         return response;
+    }
+
+    private void configureReprompt(SpeechletResponse response) {
+        Reprompt reprompt = new Reprompt();
+        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
+        speech.setText("Would you like an alternate definition?");
+        reprompt.setOutputSpeech(speech);
+        response.setReprompt(reprompt);
+        response.setShouldEndSession(false);
     }
 
     private int getDefinitionIndex(Session session, String wordKey) {

@@ -1,14 +1,11 @@
 package com.idklabs.alexa.urbanwords;
 
-import com.amazon.speech.Sdk;
-import com.amazon.speech.json.SpeechletRequestEnvelope;
-import com.amazon.speech.json.SpeechletResponseEnvelope;
+import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
+import com.idklabs.alexa.amzn.AbstractSpeechlet;
 import com.idklabs.alexa.urbanwords.api.Definition;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,18 +17,28 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("urban-words")
-public class UrbanWordsResource {
+public class UrbanWordsResource extends AbstractSpeechlet {
 
     @Autowired
     private UrbanWordsService service;
 
-    @PostMapping("/day")
-    public SpeechletResponseEnvelope getWordOfTheDay(@RequestBody SpeechletRequestEnvelope request)
-                    throws IOException {
+    @Intent("WordOfTheDay")
+    public SpeechletResponse getWordOfTheDay() throws IOException {
+        String word = service.getWordOfTheDay();
+        return buildDefinitionResponse("The word of the day is " + word + ", ", word);
+    }
 
-        // Get word of the day and define it
-        String wordOfTheDay = service.getWordOfTheDay();
-        Optional<Definition> definition = service.getDefinition(wordOfTheDay)
+    @Intent("DefineWord")
+    public SpeechletResponse getDefinition(IntentRequest request) throws IOException {
+        String word = request.getIntent()
+                             .getSlot("Word")
+                             .getValue();
+        return buildDefinitionResponse(word + " means ", word);
+    }
+
+
+    private SpeechletResponse buildDefinitionResponse(String prefix, String word) {
+        Optional<Definition> definition = service.getDefinition(word)
                                                  .getDefinitions()
                                                  .stream()
                                                  .findFirst();
@@ -40,17 +47,11 @@ public class UrbanWordsResource {
         SpeechletResponse response = new SpeechletResponse();
         if (definition.isPresent()) {
             PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-            outputSpeech.setText(definition.get()
-                                           .getDefinition());
+            outputSpeech.setText(prefix + definition.get()
+                                                    .getDefinition());
             response.setOutputSpeech(outputSpeech);
         }
 
-        // Output the envelope
-        SpeechletResponseEnvelope envelope = new SpeechletResponseEnvelope();
-        envelope.setVersion(Sdk.VERSION);
-        envelope.setSessionAttributes(request.getSession()
-                                             .getAttributes());
-        envelope.setResponse(response);
-        return envelope;
+        return response;
     }
 }

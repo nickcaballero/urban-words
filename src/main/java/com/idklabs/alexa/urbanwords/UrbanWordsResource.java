@@ -19,6 +19,8 @@ import java.util.Optional;
 @RequestMapping("urban-words")
 public class UrbanWordsResource extends AbstractSpeechlet {
 
+    private static final String INVALID_CHARACTERS = "[\\[\\]!\\\\\\r\\n]";
+
     @Autowired
     private UrbanWordsService service;
 
@@ -43,13 +45,16 @@ public class UrbanWordsResource extends AbstractSpeechlet {
                                                  .stream()
                                                  .findFirst();
 
-        // Build output speech if nay
         SpeechletResponse response = new SpeechletResponse();
+        PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
+        response.setOutputSpeech(outputSpeech);
+
         if (definition.isPresent()) {
-            PlainTextOutputSpeech outputSpeech = new PlainTextOutputSpeech();
-            outputSpeech.setText(prefix + definition.get()
-                                                    .getDefinition());
-            response.setOutputSpeech(outputSpeech);
+            outputSpeech.setText((prefix + definition.get()
+                                                     .getDefinition()).replaceAll(
+                                                                     INVALID_CHARACTERS, ""));
+        } else {
+            outputSpeech.setText("No definition found for " + word);
         }
 
         return response;

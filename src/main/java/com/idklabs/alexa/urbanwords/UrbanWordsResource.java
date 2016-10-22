@@ -50,6 +50,14 @@ public class UrbanWordsResource extends AbstractSpeechlet {
         return buildDefinitionResponse("Another definition for " + word + " is ", word, session);
     }
 
+
+    @Intent("StopDefinition")
+    public SpeechletResponse stop(Session session) {
+        SpeechletResponse response = new SpeechletResponse();
+        response.setShouldEndSession(true);
+        return response;
+    }
+
     private SpeechletResponse buildDefinitionResponse(String prefix, String word, Session session) {
         String wordKey = INDEX_PREFIX + word.hashCode();
         int definitionIndex = getDefinitionIndex(session, wordKey);

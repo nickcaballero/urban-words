@@ -3,6 +3,7 @@ package com.idklabs.alexa.amzn;
 import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.json.SpeechletResponseEnvelope;
 import com.amazon.speech.speechlet.*;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.io.IOException;
 import java.lang.annotation.*;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,11 +57,18 @@ public class AbstractSpeechlet implements Speechlet {
                              .getName();
         Method method = intents.get(name);
         try {
-            Object[] args = new Object[method.getParameterTypes().length];
-            if (args.length > 0) {
-                args[0] = request;
+            List<Object> parameters = Lists.newArrayList();
+
+            for (Class<?> type : method.getParameterTypes()) {
+                if (type == IntentRequest.class) {
+                    parameters.add(request);
+                }
+                if (type == Session.class) {
+                    parameters.add(session);
+                }
             }
-            return (SpeechletResponse) method.invoke(this, args);
+
+            return (SpeechletResponse) method.invoke(this, parameters.toArray());
         } catch (Exception e) {
             throw new SpeechletException(e);
         }
